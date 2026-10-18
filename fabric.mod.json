@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "org_lwjgl_lwjgl-openvr_natives-linux-arm64",
+  "version": "3.3.2.0",
+  "name": "lwjgl-openvr",
+  "custom": {
+    "fabric-loom:generated": true
+  }
+}
