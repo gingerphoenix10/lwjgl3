@@ -46,7 +46,7 @@
         <ant antfile="update-dependencies.xml" target="check-dependencies" inheritAll="false"/>
 
         <taskdef resource="org/jetbrains/kotlin/ant/antlib.xml" classpath="${kotlinc}/lib/kotlin-ant.jar"/>
-        <taskdef resource="testngtasks" classpath="${lib}/java/testng.jar"/>
+        <taskdef resource="testngtasks" classpath="${lib}/java/testng.jar;${lib}/java/slf4j-api.jar;${lib}/java/slf4j-jdk14.jar"/>
     </target>
 
     <target name="init-wiki" description="Initializes the lwjgl3-wiki git repository in /wiki. [Optional]">
@@ -1611,6 +1611,10 @@
                 <get-release platform="linux" arch="x64" file="liblwjgl_openvr.so"/>
                 <get-release platform="linux" arch="x64" file="libopenvr_api.so"/>
                 <get-release platform="linux" arch="x64" file="libopenvr_api.so.git"/>
+
+                <get-release platform="linux" arch="arm64" file="liblwjgl_openvr.so"/>
+                <get-release platform="linux" arch="arm64" file="libopenvr_api.so"/>
+                <get-release platform="linux" arch="arm64" file="libopenvr_api.so.git"/>
 
                 <get-release platform="macos" arch="x64" file="liblwjgl_openvr.dylib"/>
                 <get-release platform="macos" arch="x64" file="libopenvr_api.dylib"/>

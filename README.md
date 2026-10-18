@@ -1,3 +1,32 @@
+# LWJGL 3.3.1 OpenVR for Linux ARM64
+Backports the Linux ARM support from LWJGL-OpenVR 3.3.4 to 3.3.1, intended to allow older Minecraft versions to support VR on ARM headsets such as Steam Frame by using it in tandem with Vivecraft
+### Building the final Minecraft JARs
+- Clone this repository onto your ARM machine.<br>`git clone https://github.com/gingerphoenix10/lwjgl3.git -b 3.3.1`
+- Follow the usual compile instructions in [doc/README.md](doc/README.md)'s "BUILD PROCESS" section (at least up to the `compile-natives` step). This requires setting up Apache Ant and JDK.
+- Once complete, run the ant release command to build the JARs used for Minecraft.
+> [!NOTE]
+> If you get an error about `JAVA8_HOME` not existing, I've found that just running `export JAVA8_HOME=$JAVA_HOME` works for me. Whether you're supposed to do this or not, I'm not sure, but it works
+#### Fabric Mod
+- Navigate to the `(repo)/bin/RELEASE/lwjgl-openvr/` folder, and open `lwjgl-openvr-natives-linux-arm64.jar` in a zip editor. For this I usually use KDE Ark
+- Copy the `fabric.mod.json` file from the root of this project into the root of the jar to register it as a Fabric mod. This json is copied from the ARM library in `Vivecraft 26.3-1.3.17-fabric`, with 3.3.6 changed to 3.3.1, however it's super simple and could be written by hand too
+> This lwjgl-openvr-natives-linux-arm64.jar file is the finished Fabric mod used in the release, and can now be put into your Minecraft mods folder
+#### Core Natives
+For the core natives, I was having issues using the Release jar, so here's what I did instead:
+- Download `lwjgl-natives-linux-arm64.jar` from [http://build.lwjgl.org/release/3.3.1/bin/lwjgl/lwjgl-natives-linux-arm64.jar](http://build.lwjgl.org/release/3.3.1/bin/lwjgl/lwjgl-natives-linux-arm64.jar)
+- Open the jar in a zip editor and navigate to `(jar)/linux/arm64/org/lwjgl/`, and delete just `liblwjgl.so` from that folder
+- From this repository, copy the `(repo)/bin/libs/native/linux/arm64/org/lwjgl/liblwjgl.so` that was compiled from the `compile-natives` step into that folder in the jar to replace the previous one. the `liblwjgl.so.sha1` and `liblwjgl.so.git` files appear to be unused, so there's no need to modify those
+> The `lwjgl-natives-linux-arm64.jar` file you just modified is now the completed natives jar used in the release
+
+### Why does this require a Core change when it only affects the OpenVR module? (/ why does this require modifying the LWJGL JSON in PrismLauncher?)
+<sub>(here comes the most annoying part about this port)</sub><br>
+From what I can tell, when the generator is run, it automatically optimizes the build by compiling out functions that aren't used in the current architecture. Since some core functions are only *ever* used by OpenVR, the core simply keeps those functions out of the final build since ARM usually doesn't support OpenVR. This what causes the `Missing callPPI(int, int, long, int, long, long)` error - The OpenVR module tries to run that function from native core binary, but Minecraft's default native Linux ARM64 core binary doesn't contain it due to this optimization, and throws that error. A list of all functions that were added by enabling OpenVR can be seen in [49776ab](https://github.com/gingerphoenix10/lwjgl3/commit/49776abf6a6c72f2f9073c28e3029e0e19baadf6)
+
+Since we add OpenVR back, the makes the core native include these functions again, *however* this obviously doesn't affect the official release binaries that Minecraft automatically downloads. This means to override Minecraft's natives, we have to change the actual URL that the game uses to fetch LWJGL's ARM64 core with a URL to our recompiled version that contains the OpenVR functions (in my case, the direct download link from the GitHub release is used). This is why the setup is currently so complicated - I haven't found a better way to override the core native binary that doesn't require any complicated setup such as the JSON patch that's currently used. This is especially annoying as Minecraft will complain if the SHA1 or Size in bytes is either wrong or removed, meaning they have to be updated every time the binary is.
+
+In an ideal world we could include this native inside the fabric mod to override the base game's library, however as far as I'm aware Fabric is unable to do this. The only realistic option I can see to make the setup easier is to fork a custom version of the Launcher *for* ARM headsets to fetch the latest native from this repository and set its URL, SHA1 and Size in the override automatically, not super unlike how [a custom fork of BSManager](https://github.com/DaVarga/bs-manager) is used to install the [ARM64 port of Beat Saber](https://github.com/DaVarga/bs-arm64) on Steam Frame. Not sure if I'll ever get around to that, but it would probably make the user experience much better.
+
+# Below is the original LWJGL3 README
+
 [![Maven Central](https://img.shields.io/maven-central/v/org.lwjgl/lwjgl.svg?label=maven%20central)](https://search.maven.org/search?q=g:org.lwjgl)
 [![API Javadoc](https://img.shields.io/badge/API-docs-blue.svg)](https://javadoc.lwjgl.org/)
 [![License](https://img.shields.io/badge/license-BSD-blue.svg?colorB=lightgray)](https://github.com/LWJGL/lwjgl3/blob/master/LICENSE.md)
